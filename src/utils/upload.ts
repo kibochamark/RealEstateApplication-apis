@@ -22,7 +22,7 @@ const storage = new CloudinaryStorage({
 });
 
 
-const deleteFile = (publicId: string) => {
+export const deleteFile = (publicId: string) => {
     return new Promise((resolve, reject) => {
         cloudinary.uploader.destroy(
             publicId.trim(), // is the public_id field in the resource object

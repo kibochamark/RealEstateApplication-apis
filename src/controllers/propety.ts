@@ -4,6 +4,10 @@ import Joi, { optional } from "joi";
 import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse } from 'cloudinary';
 import { createProperty, deleteproperty, getproperties, getProperty, updateProperty } from "../db";
+import db from "../utils/connection";
+import { property, propertyimages } from "../db/schema";
+import { eq } from "drizzle-orm";
+import { deleteFile } from "../utils/upload";
 
 
 
@@ -106,7 +110,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
 
 
         // array to store one or more image entries for our property
-        let imageEntries: {url:string; public_id:string;}[] = []
+        let imageEntries: { url: string; public_id: string; }[] = []
 
 
         // Process images if they exist
@@ -348,6 +352,42 @@ export async function deletePropertyById(req: express.Request, res: express.Resp
 
 
         const { id } = value
+
+
+        await db.transaction(async (tx) => {
+            // retrieve property to delete
+            const retrieveproperty = await tx.query.property.findFirst(
+                {
+                    where: eq(property.id, id),
+                    with: {
+                        images: {
+                            columns: {
+                                url: true,
+                                public_id: true
+                            }
+                        }
+                    }
+
+                }
+            )
+
+            if (!retrieveproperty) {
+                return next(new GlobalError("Property not found", 404, "fail"))
+            }
+
+
+            // delete url from the db
+            await tx.delete(propertyimages).where(eq(propertyimages.property_id, id))
+
+
+            // delete image from cloudinary
+            retrieveproperty.images.forEach(async element => {
+                await deleteFile(element.public_id)
+            });
+        })
+
+
+
 
         await deleteproperty(id)
 
