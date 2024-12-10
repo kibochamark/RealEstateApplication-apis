@@ -126,6 +126,7 @@ export const propertyRelations = relations(property, ({ many, one }) => ({
 export const propertyimages = pgTable("propertyimages", {
     id: serial('id').primaryKey(),
     url: text("image_url").notNull(),
+    public_id:text("image_public_id"),
     property_id: integer("property_id").references(() => property.id),
     created_at: timestamp('created_at').defaultNow(),
     updated_at: timestamp("updated_at").defaultNow().$onUpdate(() => new Date())

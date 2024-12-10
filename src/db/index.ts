@@ -54,7 +54,7 @@ export const updateUser = async (user: {
 
 
 // create a property listing
-export const createProperty = async (propertydata: InsertPropety, image: string[], features: number[]) => {
+export const createProperty = async (propertydata: InsertPropety, image: {url:string; public_id:string;}[], features: number[]) => {
     return await db.transaction(async (tx) => {
         const [newproperty] = await tx.insert(property).values({
             name: propertydata.name,
@@ -83,9 +83,10 @@ export const createProperty = async (propertydata: InsertPropety, image: string[
         const insertedImages = await tx
             .insert(propertyimages)
             .values(
-                image.map((img: string) => ({
+                image.map((img: {url:string; public_id:string}) => ({
                     property_id: newproperty.id,
-                    url: img,
+                    url: img.url,
+                    public_id:img.public_id
                 }))
             )
 

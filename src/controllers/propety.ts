@@ -23,14 +23,14 @@ const propertySchema = Joi.object({
     price: Joi.number().precision(2).min(0).default(0.00),
     pricepermonth: Joi.number().precision(2).min(0).default(0.00),
     features: Joi.string().required(),
-    state:Joi.string().required(),
-    country:Joi.string().required(),
-    area:Joi.string().required(),
-    bedrooms:Joi.number().min(0).default(0),
+    state: Joi.string().required(),
+    country: Joi.string().required(),
+    area: Joi.string().required(),
+    bedrooms: Joi.number().min(0).default(0),
 });
 
 const updatepropertySchema = Joi.object({
-    id:Joi.number().required(),
+    id: Joi.number().required(),
     name: Joi.string().optional(),
     description: Joi.string().optional(),
     location: Joi.number().integer().positive().optional(),
@@ -44,15 +44,15 @@ const updatepropertySchema = Joi.object({
     price: Joi.number().precision(2).min(0).default(0.00).optional(),
     pricepermonth: Joi.number().precision(2).min(0).default(0.00).optional(),
     features: Joi.string().optional(),
-    state:Joi.string().optional(),
-    country:Joi.string().optional(),
-    area:Joi.string().optional(),
-    bedrooms:Joi.number().min(0).default(0).optional(),
+    state: Joi.string().optional(),
+    country: Joi.string().optional(),
+    area: Joi.string().optional(),
+    bedrooms: Joi.number().min(0).default(0).optional(),
 });
 
 
 const GetSchema = Joi.object({
-    id:Joi.number().required()
+    id: Joi.number().required()
 })
 
 
@@ -106,7 +106,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
 
 
         // array to store one or more image entries for our property
-        let imageEntries: string[] = []
+        let imageEntries: {url:string; public_id:string;}[] = []
 
 
         // Process images if they exist
@@ -118,7 +118,10 @@ export async function postProperty(req: express.Request, res: express.Response, 
             const uploadResults = await Promise.all(uploadPromises);
 
             imageEntries = uploadResults.map(result => {
-                return result.secure_url
+                return {
+                    url: result.secure_url,
+                    public_id: result.public_id
+                }
             });
         }
 
@@ -144,7 +147,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
             area,
             bedrooms,
             pricepermonth
-        }, imageEntries as string[], features)
+        }, imageEntries as { url: string; public_id: string; }[], features)
 
 
         return res.status(201).json({
@@ -166,7 +169,7 @@ export async function putProperty(req: express.Request, res: express.Response, n
 
     try {
 
-        console.log(req.body)
+        // console.log(req.body)
 
 
 
@@ -307,7 +310,7 @@ export async function getPropertyById(req: express.Request, res: express.Respons
         }
 
 
-        const {id} = value
+        const { id } = value
 
         const existingproperty = await getProperty(id)
 
@@ -326,7 +329,7 @@ export async function getPropertyById(req: express.Request, res: express.Respons
 }
 
 
-export async function  deletePropertyById(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function deletePropertyById(req: express.Request, res: express.Response, next: express.NextFunction) {
 
     try {
 
@@ -344,9 +347,9 @@ export async function  deletePropertyById(req: express.Request, res: express.Res
         }
 
 
-        const {id} = value
+        const { id } = value
 
-        await  deleteproperty(id)
+        await deleteproperty(id)
 
         return res.status(204).json().end()
 
