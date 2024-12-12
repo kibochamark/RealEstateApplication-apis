@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  firstname String
+  lastname  String
+  contact   String
+  role      UserRole @default(Admin)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company      Company       @relation(fields: [companyId], references: [id])
+  companyId    Int
+  blogs        Blog[]
+  testimonials Testimonial[]
+}
+
+enum UserRole {
+  User
+  Admin
+  SuperAdmin
+}
+
+model Company {
+  id             Int      @id @default(autoincrement())
+  companyName    String
+  streetAddress  String
+  streetAddress2 String?
+  phone          String
+  phone2         String
+  email          String   @default("doe@intime.com")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  users User[]
+}
+
+model Property {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  description    String
+  streetAddress  String
+  city           String
+  area           String
+  state          String
+  country        String
+  county         String
+  latitude       String
+  longitude      String
+  saleType       PropertySaleType @default(Sale)
+  featured       Boolean
+  propertyTypeId Int
+  size           String
+  distance       String
+  price          Float            @default(0.0)
+  pricePerMonth  Float            @default(0.0)
+  bedrooms       Float?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  propertyType PropertyType @relation(fields: [propertyTypeId], references: [id])
+
+  images             PropertyImage[]
+  propertyToFeatures Int[]
+}
+
+enum PropertySaleType {
+  Sale
+  Rent
+}
+
+model PropertyType {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  properties Property[]
+}
+
+model PropertyFeature {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PropertyImage {
+  id         Int      @id @default(autoincrement())
+  url        String
+  publicId   String
+  propertyId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+
+
+model Blog {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  imageUrl    String
+  description Json?
+  userId      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Testimonial {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  imageUrl    String?
+  description Json?
+  userId      Int
+  onBehalfOf  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
