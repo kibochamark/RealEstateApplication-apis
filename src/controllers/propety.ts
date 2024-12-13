@@ -1,13 +1,11 @@
 import express from "express"
 import { GlobalError } from "../../types/errorTypes"
-import Joi, { optional } from "joi";
+import Joi from "joi";
 import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse } from 'cloudinary';
-import { createProperty, deleteproperty, getproperties, getProperty, updateProperty } from "../db";
-import db from "../utils/connection";
-import { property, propertyimages } from "../db/schema";
-import { eq } from "drizzle-orm";
 import { deleteFile } from "../utils/upload";
+import { prisma } from "utils/prismaconnection";
+
 
 
 
@@ -16,9 +14,14 @@ import { deleteFile } from "../utils/upload";
 const propertySchema = Joi.object({
     name: Joi.string().required(),
     description: Joi.string().required(),
-    location: Joi.number().integer().positive().required(),
+    city: Joi.string().required(),
+    area: Joi.string().required(),
+    state: Joi.string().required(),
+    country: Joi.string().required(),
+    county: Joi.string().required(),
+    latitude: Joi.string().required(),
+    longitude: Joi.string().required(),
     street_address: Joi.string().required(),
-    city: Joi.string().optional(),
     saleType: Joi.string().valid('Sale', 'Rent', 'Lease').default('Sale'), // Replace with actual enums in `propertySaleType`
     featured: Joi.boolean().optional(),
     propertyType: Joi.number().integer().positive().required(),
@@ -27,9 +30,6 @@ const propertySchema = Joi.object({
     price: Joi.number().precision(2).min(0).default(0.00),
     pricepermonth: Joi.number().precision(2).min(0).default(0.00),
     features: Joi.string().required(),
-    state: Joi.string().required(),
-    country: Joi.string().required(),
-    area: Joi.string().required(),
     bedrooms: Joi.number().min(0).default(0),
 });
 
@@ -37,7 +37,12 @@ const updatepropertySchema = Joi.object({
     id: Joi.number().required(),
     name: Joi.string().optional(),
     description: Joi.string().optional(),
-    location: Joi.number().integer().positive().optional(),
+
+
+    county: Joi.string().optional(),
+    latitude: Joi.string().optional(),
+    longitude: Joi.string().optional(),
+
     street_address: Joi.string().optional(),
     city: Joi.string().optional(),
     saleType: Joi.string().valid('Sale', 'Rent', 'Lease').default('Sale').optional(), // Replace with actual enums in `propertySaleType`
@@ -52,11 +57,18 @@ const updatepropertySchema = Joi.object({
     country: Joi.string().optional(),
     area: Joi.string().optional(),
     bedrooms: Joi.number().min(0).default(0).optional(),
-});
+}).min(2);
 
 
 const GetSchema = Joi.object({
     id: Joi.number().required()
+})
+
+
+const updatePropertyImageSchema = Joi.object({
+    publicId: Joi.string().optional(),
+    action: Joi.string().allow("delete", "new").required(),
+    propertyId: Joi.number().optional()
 })
 
 
@@ -86,7 +98,6 @@ export async function postProperty(req: express.Request, res: express.Response, 
 
         let {
             name,
-            location,
             street_address,
             city,
             saleType,
@@ -98,6 +109,9 @@ export async function postProperty(req: express.Request, res: express.Response, 
             price,
             features,
             state,
+            county,
+            latitude,
+            longitude,
             country,
             area,
             bedrooms,
@@ -133,25 +147,54 @@ export async function postProperty(req: express.Request, res: express.Response, 
 
 
 
+
         // perform data manipulation in the db
-        const newproperty = await createProperty({
-            name,
-            location,
-            street_address,
-            city,
-            saleType,
-            featured,
-            propertyType,
-            size,
-            distance,
-            price,
-            description,
-            state,
-            country,
-            area,
-            bedrooms,
-            pricepermonth
-        }, imageEntries as { url: string; public_id: string; }[], features)
+        const [newproperty] = await prisma.$transaction(async (tx) => {
+            const newproperty = await tx.property.create({
+                data: {
+                    name,
+                    county,
+                    latitude,
+                    longitude,
+                    streetAddress: street_address,
+                    city,
+                    saleType,
+                    featured,
+                    propertyType,
+                    size,
+                    distance,
+                    price,
+                    description,
+                    state,
+                    country,
+                    area,
+                    bedrooms,
+                    pricePerMonth: pricepermonth,
+                    propertyToFeatures: features
+                }
+            })
+            if (!newproperty) {
+                imageEntries.map((img) => {
+                    deleteFile(img.public_id)
+                })
+            }
+
+            let formattedimageEntries = imageEntries.map((img) => {
+                return {
+                    propertyId: newproperty.id,
+                    publicId: img.public_id,
+                    url: img.url
+                }
+            })
+            // add images to our database
+            await tx.propertyImage.createMany({
+                data: formattedimageEntries
+            })
+
+
+
+            return [newproperty]
+        })
 
 
         return res.status(201).json({
@@ -168,6 +211,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
         return next(error)
     }
 }
+
 export async function putProperty(req: express.Request, res: express.Response, next: express.NextFunction) {
 
 
@@ -193,7 +237,6 @@ export async function putProperty(req: express.Request, res: express.Response, n
         let {
             id,
             name,
-            location,
             street_address,
             city,
             saleType,
@@ -205,6 +248,9 @@ export async function putProperty(req: express.Request, res: express.Response, n
             price,
             features,
             state,
+            county,
+            latitude,
+            longitude,
             country,
             area,
             bedrooms,
@@ -215,52 +261,139 @@ export async function putProperty(req: express.Request, res: express.Response, n
         features = features.split(",")
 
 
+        // perform data manipulation in the db
+        const [updateproperty] = await prisma.$transaction(async (tx) => {
+            const updateproperty = await tx.property.update({
+                where: {
+                    id
+                },
+                data: {
+                    name,
+                    county,
+                    latitude,
+                    longitude,
+                    streetAddress: street_address,
+                    city,
+                    saleType,
+                    featured,
+                    propertyType,
+                    size,
+                    distance,
+                    price,
+                    description,
+                    state,
+                    country,
+                    area,
+                    bedrooms,
+                    pricePerMonth: pricepermonth,
+                    propertyToFeatures: features
+                }
+            })
 
-        // array to store one or more image entries for our property
-        let imageEntries: string[] = []
+
+            return [updateproperty]
+        })
 
 
-        // Process images if they exist
-        if (req.files) {
-            const files = req.files as Express.Multer.File[];
 
-            const uploadPromises: Promise<UploadApiResponse>[] = files.map(file => cloudinary.uploader.upload(file.path));
 
-            const uploadResults = await Promise.all(uploadPromises);
 
-            imageEntries = uploadResults.map(result => {
-                return result.secure_url
-            });
+        return res.status(201).json({
+            status: "success",
+            data: updateproperty
+        }).end()
+
+
+
+
+
+    } catch (e: any) {
+        let error = new GlobalError(`${e.message}`, 500, "fail")
+        return next(error)
+    }
+}
+
+
+
+// update a property image
+export async function updatePropertyImage(req: express.Request, res: express.Response, next: express.NextFunction) {
+
+
+    try {
+
+
+
+
+        const { error, value } = updatePropertyImageSchema.validate(req.body, { abortEarly: false });
+
+        if (error) {
+            let statusError = new GlobalError(JSON.stringify(
+                {
+                    error: error.details.map(detail => detail.message),
+                }
+            ), 400, "")
+            statusError.status = "fail"
+            return next(statusError)
+
+        }
+
+        let {
+            action,
+            publicId,
+            propertyId
+        } = value;
+
+
+        if (action == "delete") {
+            deleteFile(publicId)
+            const propertyimage = await prisma.propertyImage.findFirst({
+                where: {
+                    publicId
+                }
+            })
+            await prisma.propertyImage.delete({
+                where: {
+                    id: propertyimage.id
+                }
+            })
+        } else if (action == "new" && propertyId) {
+            // array to store one or more image entries for our property
+            let imageEntries: { url: string; publicId: string; propertyId: number; }[] = []
+
+
+            // Process images if they exist
+            if (req.files) {
+                const files = req.files as Express.Multer.File[];
+
+                const uploadPromises: Promise<UploadApiResponse>[] = files.map(file => cloudinary.uploader.upload(file.path));
+
+                const uploadResults = await Promise.all(uploadPromises);
+
+                imageEntries = uploadResults.map(result => {
+                    return {
+                        url: result.secure_url,
+                        publicId: result.public_id,
+                        propertyId
+                    }
+                });
+            }
+
+
+            await prisma.propertyImage.createMany({
+                data: imageEntries
+            })
+        } else {
+            return res.status(200).json({
+                message: "No action was performed"
+            })
         }
 
 
 
 
 
-        // perform data manipulation in the db
-        const newproperty = await updateProperty({
-            name,
-            location,
-            street_address,
-            city,
-            saleType,
-            featured,
-            propertyType,
-            size,
-            distance,
-            price,
-            description,
-            state,
-            country,
-            area,
-            bedrooms,
-            pricepermonth
-        }, imageEntries as string[], features, id)
-
-
         return res.status(201).json({
             status: "success",
-            data: newproperty
         }).end()
 
 
@@ -276,11 +409,13 @@ export async function putProperty(req: express.Request, res: express.Response, n
 
 
 
+
+
 export async function getProperties(req: express.Request, res: express.Response, next: express.NextFunction) {
 
     try {
 
-        const properties = await getproperties()
+        const properties = await prisma.property.findMany()
 
         return res.status(200).json({
             status: "success",
@@ -316,7 +451,11 @@ export async function getPropertyById(req: express.Request, res: express.Respons
 
         const { id } = value
 
-        const existingproperty = await getProperty(id)
+        const existingproperty = await prisma.property.findUnique({
+            where: {
+                id
+            }
+        })
 
         return res.status(200).json({
             status: "success",
@@ -354,20 +493,13 @@ export async function deletePropertyById(req: express.Request, res: express.Resp
         const { id } = value
 
 
-        await db.transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
             // retrieve property to delete
-            const retrieveproperty = await tx.query.property.findFirst(
+            const retrieveproperty = await tx.property.findUnique(
                 {
-                    where: eq(property.id, id),
-                    with: {
-                        images: {
-                            columns: {
-                                url: true,
-                                public_id: true
-                            }
-                        }
+                    where: {
+                        id
                     }
-
                 }
             )
 
@@ -376,20 +508,33 @@ export async function deletePropertyById(req: express.Request, res: express.Resp
             }
 
 
+            // retrieve the list of images to delete
+            const propertyimages = await tx.propertyImage.findMany({
+                where: {
+                    propertyId: id
+                }
+            })
+
+            if (!propertyimages) throw new Error("no images found")
+
+            propertyimages.forEach((img) => {
+                deleteFile(img.publicId)
+            })
+
             // delete url from the db
-            await tx.delete(propertyimages).where(eq(propertyimages.property_id, id))
+            await tx.propertyImage.deleteMany({
+                where: {
+                    propertyId: id
+                }
+            })
 
-
-            // delete image from cloudinary
-            retrieveproperty.images.forEach(async element => {
-                await deleteFile(element.public_id)
-            });
+            await tx.property.delete({
+                where: {
+                    id
+                }
+            })
         })
 
-
-
-
-        await deleteproperty(id)
 
         return res.status(204).json().end()
 
@@ -401,3 +546,5 @@ export async function deletePropertyById(req: express.Request, res: express.Resp
         next(error)
     }
 }
+
+

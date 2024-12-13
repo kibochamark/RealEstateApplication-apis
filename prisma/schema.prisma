@@ -13,7 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model IntimeUser {
   id        Int      @id @default(autoincrement())
   username  String   @unique
   email     String   @unique
@@ -42,13 +42,20 @@ model Company {
   companyName    String
   streetAddress  String
   streetAddress2 String?
+  city           String
+  area           String
+  state          String
+  country        String
+  county         String
+  latitude       String
+  longitude      String
   phone          String
   phone2         String
   email          String   @default("doe@intime.com")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  users User[]
+  users IntimeUser[]
 }
 
 model Property {
@@ -124,7 +131,7 @@ model Blog {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user IntimeUser @relation(fields: [userId], references: [id])
 }
 
 model Testimonial {
@@ -137,5 +144,5 @@ model Testimonial {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user IntimeUser @relation(fields: [userId], references: [id])
 }

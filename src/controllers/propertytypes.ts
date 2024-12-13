@@ -1,7 +1,7 @@
 import Joi from "joi";
 import express from "express"
 import { GlobalError } from "../../types/errorTypes";
-import { createpropertytypes, deletepropertytypes,   getpropertytype,  getpropertytypes,  updatepropertytypes } from "../db";
+import { prisma } from "../utils/prismaconnection";
 
 
 export const propertytypeschema = Joi.object({
@@ -43,8 +43,11 @@ export async function postPropertyType(req: express.Request, res: express.Respon
         } = value;
 
 
-        const propertytype = await createpropertytypes({
-            name
+        const propertytype = await prisma.propertyType.create({
+            data: {
+                name
+            }
+
         })
 
 
@@ -84,9 +87,15 @@ export async function patchpropertytypes(req: express.Request, res: express.Resp
         } = value;
 
 
-        const propertytype = await updatepropertytypes({
-            name
-        }, id)
+        const propertytype = await prisma.propertyType.update({
+            where: {
+                id
+            },
+            data: {
+                name
+            }
+
+        })
 
 
 
@@ -109,7 +118,7 @@ export async function patchpropertytypes(req: express.Request, res: express.Resp
 export async function retrievePropertyTypes(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const propetytype = await getpropertytypes()
+        const propetytype = await prisma.propertyType.findMany()
 
 
 
@@ -144,7 +153,11 @@ export async function retrievePropertyType(req: express.Request, res: express.Re
 
         let { id } = value
 
-        const propertytype = await getpropertytype(id)
+        const propertytype = await prisma.propertyType.findUniqueOrThrow({
+            where:{
+                id
+            }
+        })
 
 
 
@@ -179,7 +192,11 @@ export async function removepropertytypes(req: express.Request, res: express.Res
 
         let { id } = value
 
-        await deletepropertytypes(id)
+        await prisma.propertyType.delete({
+            where:{
+                id
+            }
+        })
 
         return res.status(204).json()
 

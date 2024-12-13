@@ -1,13 +1,11 @@
 import express from 'express';
 import { validateEmail } from '../middleware/emailValidator';
-
 import { upload } from '../utils/upload';
-import authenticateJWT from '../middleware';
 import { deletePropertyById, getProperties, getPropertyById, postProperty, putProperty } from '../controllers/propety';
-import { patchLocation, postLocation, removelocation, retrievelocation, retrievelocations } from '../controllers/location';
 import { patchCompany, postCompany, removecompany, retrievecompanies, retrievecompany } from '../controllers/company';
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypes } from '../controllers/propertytypes';
+import passport from 'passport';
 
 
 
@@ -99,19 +97,13 @@ const routes = express.Router();
 
 // // Route to create a new product
 // // routes.post('/products', checkTokenBlacklist, authMiddleware, createProduct);
-routes.post('/property', authenticateJWT, upload.array('images', 10), postProperty);
+routes.post('/property', passport.authenticate('jwt', {session:false}), upload.array('images', 10), postProperty);
 routes.get("/properties", getProperties)
 routes.get("/:id/property", getPropertyById)
 routes.delete("/:id/property", deletePropertyById)
-routes.patch("/property", upload.array('images', 10), putProperty)
+routes.patch("/property", putProperty)
+routes.patch("/propertyimage", upload.array('images', 10), putProperty)
 
-
-
-routes.get("/locations", retrievelocations)
-routes.get("/:id/location", retrievelocation)
-routes.delete("/:id/location", removelocation)
-routes.patch("/location", patchLocation)
-routes.post("/location", postLocation)
 
 
 routes.get("/companies", retrievecompanies)
@@ -135,13 +127,5 @@ routes.delete("/:id/propertytype", removepropertytypes)
 routes.patch("/propertytype", patchpropertytypes)
 routes.post("/propertytype", postPropertyType)
 
-// // Route to update a product by ID
-// routes.put('/products/:id',checkTokenBlacklist, authMiddleware, updateProductById);
-
-// // Route to delete a product by ID
-// routes.delete('/products/:id', checkTokenBlacklist, authMiddleware, deleteProductById);
-
-// // Route to add an image to a product
-// routes.post('/products/:id/images', checkTokenBlacklist, authMiddleware, addProductImage);
 
 export default routes;

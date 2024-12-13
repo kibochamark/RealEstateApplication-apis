@@ -1,7 +1,7 @@
 import Joi from "joi";
 import express from "express"
 import { GlobalError } from "../../types/errorTypes";
-import { createpropertyfeatures,  deletebulkpropertyfeatures,  deletepropertyfeatures,  getpropertyfeature, getpropertyfeatures,  updatepropertyfeatures } from "../db";
+import { prisma } from "../utils/prismaconnection";
 
 
 export const featureSchema = Joi.object({
@@ -20,7 +20,7 @@ export const getSchema = Joi.object({
 })
 
 export const deleteSchema = Joi.object({
-    features:Joi.array().required()
+    features: Joi.array().required()
 })
 
 
@@ -52,8 +52,11 @@ export async function postFeature(req: express.Request, res: express.Response, n
         } = value;
 
 
-        const feature = await createpropertyfeatures({
-            name, description
+        const feature = await prisma.propertyFeature.create({
+            data: {
+                name, description
+            }
+
         })
 
 
@@ -93,9 +96,15 @@ export async function patchFeature(req: express.Request, res: express.Response, 
         } = value;
 
 
-        const feature = await updatepropertyfeatures({
-            name, description
-        }, id)
+        const feature = await prisma.propertyFeature.update({
+            where: {
+                id
+            },
+            data: {
+                name, description
+            }
+
+        })
 
 
 
@@ -118,7 +127,7 @@ export async function patchFeature(req: express.Request, res: express.Response, 
 export async function retrievefeatures(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const features = await getpropertyfeatures()
+        const features = await prisma.propertyFeature.findMany()
 
 
 
@@ -153,7 +162,11 @@ export async function retrievefeature(req: express.Request, res: express.Respons
 
         let { id } = value
 
-        const feature = await getpropertyfeature(id)
+        const feature = await prisma.propertyFeature.findUnique({
+            where:{
+                id
+            }
+        })
 
 
 
@@ -188,7 +201,11 @@ export async function removefeature(req: express.Request, res: express.Response,
 
         let { id } = value
 
-        await deletepropertyfeatures(id)
+        await prisma.propertyFeature.delete({
+            where:{
+                id
+            }
+        })
 
         return res.status(204).json()
 
@@ -216,7 +233,13 @@ export async function removefeatures(req: express.Request, res: express.Response
 
         let { features } = value
 
-        await deletebulkpropertyfeatures(features)
+        await prisma.propertyFeature.deleteMany({
+            where:{
+                id:{
+                    in:features
+                }
+            }
+        })
 
         return res.status(204).json()
 

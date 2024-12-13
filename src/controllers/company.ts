@@ -1,28 +1,41 @@
 import Joi from "joi";
 import express from "express"
 import { GlobalError } from "../../types/errorTypes";
-import { createCompany, createLocation, deleteCompany, deleteLocation, getCompanies, getCompany, getLocation, getLocations, updateCompany } from "../db";
+import { prisma } from "../utils/prismaconnection";
 
 
 export const companySchema = Joi.object({
     company_name: Joi.string().required(),
     street_address: Joi.string().required(),
     street_address2: Joi.string().required(),
-    location: Joi.number().required(),
+    city: Joi.string().required(),
+    area: Joi.string().required(),
+    state: Joi.string().required(),
+    country: Joi.string().required(),
+    county: Joi.string().required(),
+    latitude: Joi.string().required(),
+    longitude: Joi.string().required(),
     phone: Joi.string().required(),
     phone2: Joi.string().optional(),
     email: Joi.string().required()
 })
 export const updatecompanySchema = Joi.object({
-    id:Joi.number().required(),
+    id: Joi.number().required(),
     company_name: Joi.string().optional(),
     street_address: Joi.string().optional(),
     street_address2: Joi.string().optional(),
-    location: Joi.string().optional(),
+    city: Joi.string().optional(),
+    area: Joi.string().optional(),
+    state: Joi.string().optional(),
+    country: Joi.string().optional(),
+    county: Joi.string().optional(),
+    latitude: Joi.string().optional(),
+    longitude: Joi.string().optional(),
+
     phone: Joi.string().optional(),
     phone2: Joi.string().optional(),
     email: Joi.string().optional()
-})
+}).min(1)
 
 export const getSchema = Joi.object({
     id: Joi.number().required()
@@ -54,21 +67,37 @@ export async function postCompany(req: express.Request, res: express.Response, n
             company_name,
             street_address,
             street_address2,
-            location,
+
+            city,
+            area,
+            state,
+            country,
+            county,
+            latitude,
+            longitude,
             phone,
             phone2,
             email,
         } = value;
 
 
-        const company = await createCompany({
-            company_name,
-            street_address,
-            street_address2,
-            location,
-            phone,
-            phone2,
-            email,
+        const company = await prisma.company.create({
+            data: {
+                companyName: company_name,
+                streetAddress: street_address,
+                streetAddress2: street_address2,
+                city,
+                area,
+                state,
+                country,
+                county,
+                latitude,
+                longitude,
+                phone,
+                phone2,
+                email,
+            }
+
         })
 
 
@@ -107,22 +136,41 @@ export async function patchCompany(req: express.Request, res: express.Response, 
             company_name,
             street_address,
             street_address2,
-            location,
+
+            city,
+            area,
+            state,
+            country,
+            county,
+            latitude,
+            longitude,
             phone,
             phone2,
             email,
         } = value;
 
 
-        const company = await updateCompany({
-            company_name,
-            street_address,
-            street_address2,
-            location,
-            phone,
-            phone2,
-            email,
-        }, id)
+        const company = await prisma.company.update({
+            where: {
+                id
+            },
+            data: {
+                companyName: company_name,
+                streetAddress: street_address,
+                streetAddress2: street_address2,
+                city,
+                area,
+                state,
+                country,
+                county,
+                latitude,
+                longitude,
+                phone,
+                phone2,
+                email,
+            }
+
+        })
 
 
 
@@ -145,8 +193,7 @@ export async function patchCompany(req: express.Request, res: express.Response, 
 export async function retrievecompanies(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const companies = await getCompanies()
-
+        const companies = await prisma.company.findMany()
 
 
         return res.status(200).json({
@@ -180,7 +227,11 @@ export async function retrievecompany(req: express.Request, res: express.Respons
 
         let { id } = value
 
-        const company = await getCompany(id)
+        const company = await prisma.company.findUnique({
+            where:{
+                id
+            }
+        })
 
 
 
@@ -215,7 +266,11 @@ export async function removecompany(req: express.Request, res: express.Response,
 
         let { id } = value
 
-        await deleteCompany(id)
+        await prisma.company.delete({
+            where:{
+                id
+            }
+        })
 
         return res.status(204).json()
 

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import express from "express"
+import express, { NextFunction, Request, Response } from "express"
 import cors from "cors"
 import compression from "compression"
 import bodyParser from "body-parser"
@@ -14,6 +14,8 @@ import dotenv from "dotenv"
 import db from './utils/connection'
 
 import { eq } from 'drizzle-orm';
+import passport from "passport"
+import "./passportfiles/passportauth"
 
 
 dotenv.config()
@@ -23,11 +25,14 @@ const app = express(
 )
 
 app.use(session({ secret: 'your-session-secret', resave: false, saveUninitialized: true }));
-app.use(bodyParser.json());
+app.use(passport.initialize())
+app.use(passport.session())
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(cors({ credentials: true }));
 app.use(compression());
 app.use(cookieParser());
+
 
 
 

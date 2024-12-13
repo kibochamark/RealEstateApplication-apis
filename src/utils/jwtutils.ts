@@ -1,0 +1,33 @@
+import jwt, { JwtPayload } from 'jsonwebtoken';
+
+
+const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your_refresh_secret';
+
+export const generateTokens = (user: { email: string; username: string; company_id: number }) => {
+    const accessToken = jwt.sign({ username: user.username, email: user.email, company_id: user.company_id }, JWT_SECRET, {
+        expiresIn: '4h'
+    });
+
+    const refreshToken = jwt.sign({ username: user.username, email: user.email, company_id: user.company_id }, REFRESH_SECRET, {
+        expiresIn: '7d'
+    });
+
+    return { accessToken, refreshToken };
+};
+
+// export const storeRefreshToken = async (userId: number, refreshToken: string) => {
+//     await db.insert(refreshTokens).values({ user_id: userId, token: refreshToken });
+// };
+
+
+
+export const verifyRefreshToken = (token: string): JwtPayload => {
+    return jwt.verify(token, REFRESH_SECRET) as JwtPayload;
+};
+
+export const generateRefreshToken = (user: { username:string; email: any; }) => {
+    return jwt.sign({ username: user.username, email: user.email }, REFRESH_SECRET, { expiresIn: '7d' });
+};
+
+
