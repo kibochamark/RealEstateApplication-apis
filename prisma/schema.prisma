@@ -18,6 +18,7 @@ model IntimeUser {
   username  String   @unique
   email     String   @unique
   password  String
+  salt      String
   firstname String
   lastname  String
   contact   String

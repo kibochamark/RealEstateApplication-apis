@@ -2,14 +2,14 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your_refresh_secret';
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'secret';
 
-export const generateTokens = (user: { email: string; username: string; company_id: number }) => {
-    const accessToken = jwt.sign({ username: user.username, email: user.email, company_id: user.company_id }, JWT_SECRET, {
+export const generateTokens = (user: { email: string; username: string; companyId: number }) => {
+    const accessToken = jwt.sign({ username: user.username, email: user.email, companyId: user.companyId }, JWT_SECRET, {
         expiresIn: '4h'
     });
 
-    const refreshToken = jwt.sign({ username: user.username, email: user.email, company_id: user.company_id }, REFRESH_SECRET, {
+    const refreshToken = jwt.sign({ username: user.username, email: user.email, companyId: user.companyId }, REFRESH_SECRET, {
         expiresIn: '7d'
     });
 

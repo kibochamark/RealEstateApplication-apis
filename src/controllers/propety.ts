@@ -4,7 +4,7 @@ import Joi from "joi";
 import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse } from 'cloudinary';
 import { deleteFile } from "../utils/upload";
-import { prisma } from "utils/prismaconnection";
+import { prisma } from "../utils/prismaconnection";
 
 
 

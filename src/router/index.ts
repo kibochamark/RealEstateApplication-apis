@@ -6,6 +6,7 @@ import { patchCompany, postCompany, removecompany, retrievecompanies, retrieveco
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypes } from '../controllers/propertytypes';
 import passport from 'passport';
+import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from 'controllers/auth';
 
 
 
@@ -105,6 +106,13 @@ routes.patch("/property", putProperty)
 routes.patch("/propertyimage", upload.array('images', 10), putProperty)
 
 
+
+routes.get("/:id/user", retrieveuser)
+routes.get("/:id/companyusers", retrieveusersbycompanyid)
+routes.delete("/:id/company", removeuser)
+routes.patch("/updateuser", patchUser)
+routes.post("/signup", validateEmail, register)
+routes.post("/login", validateEmail, login )
 
 routes.get("/companies", retrievecompanies)
 routes.get("/:id/company", retrievecompany)
