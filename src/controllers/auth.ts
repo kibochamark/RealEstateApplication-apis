@@ -2,8 +2,9 @@ import { Response, Request, NextFunction } from "express"
 import Joi from "joi"
 import { GlobalError } from "../../types/errorTypes";
 import { prisma } from "../utils/prismaconnection";
-import { checkPassword, createHash } from "utils/HashPassword";
+import { checkPassword, createHash } from "../utils/HashPassword";
 import { generateTokens } from "../utils/jwtutils";
+import passport from "passport";
 
 
 export const authSchema = Joi.object({
@@ -137,47 +138,23 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    try {
-        const { error, value } = authSchema.validate(req.body, { abortEarly: false });
-
-        if (error) {
-            let statusError = new GlobalError(JSON.stringify(
-                {
-                    error: error.details.map(detail => detail.message),
-                }
-            ), 400, "")
-            statusError.status = "fail"
-            return next(statusError)
-
+    passport.authenticate('local', { session: false }, async (err: any, user: Express.User, info: any) => {
+        if (err || !user) {
+            return res.status(400).json({
+                message: 'Something is not right',
+                user: user
+            });
         }
-
-        const newuser = await prisma.intimeUser.findUnique({
-            where: {
-                email: value.email
+        req.login(user, { session: false }, async (err) => {
+            if (err) {
+                res.send(err);
             }
-        })
+            // generate a signed son web token with the contents of user object and return it in the response
+            const token = await generateTokens(user);
+            return res.json({ user, token });
+        });
+    })(req, res)
 
-        if (!newuser) throw new GlobalError("user not found", 404, 'fail')
-
-
-        const ispasswordcorrect = await checkPassword(value.password, newuser.password)
-
-        if (!ispasswordcorrect) throw new GlobalError("invalid credentials", 400, 'fail')
-
-        // generate jwt token
-
-        const tokens = generateTokens(newuser)
-
-
-        return res.status(201).json({
-            message: 'success',
-            data: tokens
-        })
-
-    } catch (e: any) {
-        let error = new GlobalError(`${e.message}`, 500, "fail")
-        return next(error)
-    }
 }
 
 
@@ -264,8 +241,8 @@ export async function retrieveusersbycompanyid(req: Request, res: Response, next
         let { id } = value
 
         const users = await prisma.intimeUser.findMany({
-            where:{
-                companyId:id
+            where: {
+                companyId: id
             }
         })
 

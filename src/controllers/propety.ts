@@ -5,6 +5,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse } from 'cloudinary';
 import { deleteFile } from "../utils/upload";
 import { prisma } from "../utils/prismaconnection";
+import { off } from "process";
 
 
 
@@ -119,7 +120,14 @@ export async function postProperty(req: express.Request, res: express.Response, 
         } = value;
         // convert features to an array
 
-        features = features.split(",")
+        console.log(features)
+        console.log(features.split(","))
+
+        features = features.split(",").map((feat:string)=> parseInt(feat))
+
+        console.log(features)
+
+        
 
 
 
@@ -160,7 +168,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
                     city,
                     saleType,
                     featured,
-                    propertyType,
+                    propertyTypeId:parseInt(propertyType),
                     size,
                     distance,
                     price,
@@ -173,11 +181,11 @@ export async function postProperty(req: express.Request, res: express.Response, 
                     propertyToFeatures: features
                 }
             })
-            if (!newproperty) {
-                imageEntries.map((img) => {
-                    deleteFile(img.public_id)
-                })
-            }
+            // if (!newproperty) {
+            //     imageEntries.map((img) => {
+            //         deleteFile(img.public_id)
+            //     })
+            // }
 
             let formattedimageEntries = imageEntries.map((img) => {
                 return {
@@ -415,7 +423,26 @@ export async function getProperties(req: express.Request, res: express.Response,
 
     try {
 
-        const properties = await prisma.property.findMany()
+        const {limit, offset} =req.query
+
+        const properties = await prisma.property.findMany(
+            {
+                select:{
+                    id:true,    
+                    name:true,
+                    city:true,
+                    country:true,
+                    state:true,
+                    saleType:true,
+                    featured:true,
+                    propertyType:true,
+                    county:true,
+                    distance:true
+                },
+                take:parseInt(limit as string) ?? 200,
+                skip:parseInt(offset as string) ?? 0
+            }
+        )
 
         return res.status(200).json({
             status: "success",
@@ -457,9 +484,18 @@ export async function getPropertyById(req: express.Request, res: express.Respons
             }
         })
 
+        const propertyimages = await prisma.propertyImage.findMany({
+            where:{
+                propertyId:existingproperty.id
+            }
+        })
+
         return res.status(200).json({
             status: "success",
-            data: existingproperty
+            data: {
+                property:existingproperty,
+                images:propertyimages
+            }
         }).end()
 
     } catch (e: any) {

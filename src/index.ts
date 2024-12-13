@@ -15,6 +15,7 @@ import db from './utils/connection'
 
 import { eq } from 'drizzle-orm';
 import passport from "passport"
+import "./passportfiles/strategy/localstrategy"
 import "./passportfiles/passportauth"
 
 
@@ -24,9 +25,8 @@ const app = express(
 
 )
 
-app.use(session({ secret: 'your-session-secret', resave: false, saveUninitialized: true }));
-app.use(passport.initialize())
-app.use(passport.session())
+// app.use(session({ secret: 'your-session-secret', resave: false, saveUninitialized: true }));
+// app.use(passport.initialize())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors({ credentials: true }));

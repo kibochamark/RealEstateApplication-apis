@@ -6,7 +6,7 @@ import { patchCompany, postCompany, removecompany, retrievecompanies, retrieveco
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypes } from '../controllers/propertytypes';
 import passport from 'passport';
-import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from 'controllers/auth';
+import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
 
 
 

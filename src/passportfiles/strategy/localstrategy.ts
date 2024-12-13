@@ -1,7 +1,8 @@
 import passport from "passport"
 
 import { Strategy } from "passport-local"
-import { prisma } from "utils/prismaconnection"
+import { prisma } from "../../utils/prismaconnection"
+import { checkPassword } from "../../utils/HashPassword"
 
 
 
@@ -50,7 +51,7 @@ export default passport.use(
             })
 
             if (!user) throw new Error("user not found")
-            if (user.password !== password) throw new Error("invalid credentials")
+            if (!checkPassword(password, user.password)) throw new Error("invalid credentials")
 
             return done(null, user)
         } catch (err) {
