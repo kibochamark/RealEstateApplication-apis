@@ -84,7 +84,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
 
 
 
-        const { error, value } = propertySchema.validate(req.body, { abortEarly: false });
+        const { error, value } = propertySchema.validate(JSON.parse(req.body.json), { abortEarly: false });
 
         if (error) {
             let statusError = new GlobalError(JSON.stringify(
@@ -430,7 +430,10 @@ export async function getProperties(req: express.Request, res: express.Response,
                 select:{
                     id:true,    
                     name:true,
+                    area:true,
                     city:true,
+                    price:true,
+                    pricePerMonth:true,
                     country:true,
                     state:true,
                     saleType:true,
