@@ -123,11 +123,11 @@ export async function postProperty(req: express.Request, res: express.Response, 
         console.log(features)
         console.log(features.split(","))
 
-        features = features.split(",").map((feat:string)=> parseInt(feat))
+        features = features.split(",").map((feat: string) => parseInt(feat))
 
         console.log(features)
 
-        
+
 
 
 
@@ -168,7 +168,7 @@ export async function postProperty(req: express.Request, res: express.Response, 
                     city,
                     saleType,
                     featured,
-                    propertyTypeId:parseInt(propertyType),
+                    propertyTypeId: parseInt(propertyType),
                     size,
                     distance,
                     price,
@@ -423,36 +423,50 @@ export async function getProperties(req: express.Request, res: express.Response,
 
     try {
 
-        const {limit, offset} =req.query
+
+
+        const { limit, page } = req.query
+
+        // number of items to display per page
+        const number_of_items = 20
+
+        const offset = (parseInt(page as string) - 1) * number_of_items;
+
+
 
         const properties = await prisma.property.findMany(
             {
-                select:{
-                    id:true,    
-                    name:true,
-                    area:true,
-                    city:true,
-                    price:true,
-                    pricePerMonth:true,
-                    bedrooms:true,
-                    size:true,
-                    images:true,
-                    country:true,
-                    state:true,
-                    saleType:true,
-                    featured:true,
-                    propertyType:true,
-                    county:true,
-                    distance:true
+                select: {
+                    id: true,
+                    name: true,
+                    area: true,
+                    city: true,
+                    price: true,
+                    pricePerMonth: true,
+                    bedrooms: true,
+                    size: true,
+                    images: true,
+                    country: true,
+                    state: true,
+                    saleType: true,
+                    featured: true,
+                    propertyType: true,
+                    county: true,
+                    distance: true
                 },
-                take:parseInt(limit as string) ?? 200,
-                skip:parseInt(offset as string) ?? 0
+                take: parseInt(limit as string) ?? 200,
+                skip: offset
             }
         )
 
+        const pagecount = Math.ceil(Number(properties.length / number_of_items))
+
         return res.status(200).json({
             status: "success",
-            data: properties
+            data: {
+                properties,
+                totalpages: pagecount
+            }
         }).end()
 
     } catch (e: any) {
@@ -488,9 +502,9 @@ export async function getPropertyById(req: express.Request, res: express.Respons
             where: {
                 id
             },
-            include:{
-                propertyType:true,
-                
+            include: {
+                propertyType: true,
+
             }
         })
 
@@ -498,27 +512,27 @@ export async function getPropertyById(req: express.Request, res: express.Respons
 
 
         const propertyfeatures = await prisma.propertyFeature.findMany({
-            where:{
-                id:{
-                    in:existingproperty.propertyToFeatures
+            where: {
+                id: {
+                    in: existingproperty.propertyToFeatures
                 }
             }
         })
         const propertyimages = await prisma.propertyImage.findMany({
-            where:{
-                propertyId:existingproperty.id
+            where: {
+                propertyId: existingproperty.id
             }
         })
 
         return res.status(200).json({
             status: "success",
             data: {
-                property:{
+                property: {
                     ...existingproperty,
-                    propertyToFeatures:propertyfeatures
+                    propertyToFeatures: propertyfeatures
                 },
-                images:propertyimages,
-                
+                images: propertyimages,
+
             }
         }).end()
 
