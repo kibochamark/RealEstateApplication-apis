@@ -487,6 +487,9 @@ export async function getPropertyById(req: express.Request, res: express.Respons
         const existingproperty = await prisma.property.findUnique({
             where: {
                 id
+            },
+            include:{
+                propertyType:true
             }
         })
 
