@@ -477,6 +477,54 @@ export async function getProperties(req: express.Request, res: express.Response,
         next(error)
     }
 }
+export async function getAllProperties(req: express.Request, res: express.Response, next: express.NextFunction) {
+
+    try {
+
+
+
+
+
+        const properties = await prisma.property.findMany(
+            {
+                select: {
+                    id: true,
+                    name: true,
+                    area: true,
+                    city: true,
+                    price: true,
+                    pricePerMonth: true,
+                    bedrooms: true,
+                    size: true,
+                    images: true,
+                    country: true,
+                    state: true,
+                    saleType: true,
+                    featured: true,
+                    propertyType: true,
+                    county: true,
+                    distance: true
+                },
+
+            }
+        )
+
+
+        return res.status(200).json({
+            status: "success",
+            data:properties,
+
+
+        }).end()
+
+    } catch (e: any) {
+
+        let error = new GlobalError(`${e.message}`, 500, "fail")
+        error.statusCode = 500
+        error.status = "server error"
+        next(error)
+    }
+}
 
 export async function getPropertyById(req: express.Request, res: express.Response, next: express.NextFunction) {
 
