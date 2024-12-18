@@ -489,10 +489,21 @@ export async function getPropertyById(req: express.Request, res: express.Respons
                 id
             },
             include:{
-                propertyType:true
+                propertyType:true,
+                
             }
         })
 
+
+
+
+        const propertyfeatures = await prisma.propertyFeature.findMany({
+            where:{
+                id:{
+                    in:existingproperty.propertyToFeatures
+                }
+            }
+        })
         const propertyimages = await prisma.propertyImage.findMany({
             where:{
                 propertyId:existingproperty.id
@@ -502,8 +513,12 @@ export async function getPropertyById(req: express.Request, res: express.Respons
         return res.status(200).json({
             status: "success",
             data: {
-                property:existingproperty,
-                images:propertyimages
+                property:{
+                    ...existingproperty,
+                    propertyToFeatures:propertyfeatures
+                },
+                images:propertyimages,
+                
             }
         }).end()
 
