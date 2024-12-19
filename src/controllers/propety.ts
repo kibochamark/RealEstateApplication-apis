@@ -428,9 +428,10 @@ export async function getProperties(req: express.Request, res: express.Response,
         const { limit, page } = req.query
 
         // number of items to display per page
-        const number_of_items = 20
+        const number_of_items = 2
 
-        const offset = (parseInt(page as string) - 1) * number_of_items;
+        const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+        
 
 
 
