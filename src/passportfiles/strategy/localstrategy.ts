@@ -46,12 +46,14 @@ export default passport.use(
                 },
                 select: {
                     email: true,
-                    password: true
+                    username:true,
+                    password:true,
+                    companyId:true
                 }
             })
 
             if (!user) throw new Error("user not found")
-            if (!checkPassword(password, user.password)) throw new Error("invalid credentials")
+            if (!await checkPassword(password, user.password)) throw new Error("invalid credentials")
 
             return done(null, user)
         } catch (err) {

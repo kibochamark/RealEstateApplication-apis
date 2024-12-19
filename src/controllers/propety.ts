@@ -459,7 +459,13 @@ export async function getProperties(req: express.Request, res: express.Response,
             }
         )
 
-        const pagecount = Math.ceil(Number(properties.length / number_of_items))
+        const propertycount = await prisma.property.aggregate({
+            _count:{
+                id:true
+            }
+        })
+
+        const pagecount = Math.ceil(Number(propertycount._count.id  / number_of_items))
 
         return res.status(200).json({
             status: "success",
