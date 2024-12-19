@@ -4,7 +4,7 @@ import { GlobalError } from "../../types/errorTypes";
 import { prisma } from "../utils/prismaconnection";
 import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse } from 'cloudinary';
-import { deleteFile } from "utils/upload";
+import { deleteFile } from "../utils/upload";
 
 
 export const blogschema = Joi.object({
