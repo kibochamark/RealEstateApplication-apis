@@ -79,6 +79,7 @@ model Property {
   price          Float            @default(0.0)
   pricePerMonth  Float            @default(0.0)
   bedrooms       Float?
+  bathrooms       Int?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 

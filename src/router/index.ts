@@ -1,13 +1,13 @@
 import express from 'express';
 import { validateEmail } from '../middleware/emailValidator';
 import { upload } from '../utils/upload';
-import { deletePropertyById, getAllProperties, getProperties, getPropertyById, postProperty, putProperty } from '../controllers/propety';
+import { deletePropertyById, getAllProperties, getProperties, getPropertyById, getSimilarProperties, postProperty, putProperty } from '../controllers/propety';
 import { patchCompany, postCompany, removecompany, retrievecompanies, retrievecompany } from '../controllers/company';
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypes } from '../controllers/propertytypes';
 import passport from 'passport';
 import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
-import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs } from 'controllers/blog';
+import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs } from '../controllers/blog';
 
 
 
@@ -102,6 +102,7 @@ const routes = express.Router();
 // passport.authenticate('jwt', {session:false})
 routes.post('/property',  upload.array('images', 10), postProperty);
 routes.get("/properties", getProperties)
+routes.get("/:id/similarproperties", getSimilarProperties)
 routes.get("/allproperties", getAllProperties)
 routes.get("/:id/property", getPropertyById)
 routes.delete("/:id/property", deletePropertyById)

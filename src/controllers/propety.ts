@@ -431,7 +431,7 @@ export async function getProperties(req: express.Request, res: express.Response,
         const number_of_items = 2
 
         const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-        
+
 
 
 
@@ -461,18 +461,100 @@ export async function getProperties(req: express.Request, res: express.Response,
         )
 
         const propertycount = await prisma.property.aggregate({
-            _count:{
-                id:true
+            _count: {
+                id: true
             }
         })
 
-        const pagecount = Math.ceil(Number(propertycount._count.id  / number_of_items))
+        const pagecount = Math.ceil(Number(propertycount._count.id / number_of_items))
 
         return res.status(200).json({
             status: "success",
             data: {
                 properties,
                 totalpages: pagecount
+            }
+        }).end()
+
+    } catch (e: any) {
+
+        let error = new GlobalError(`${e.message}`, 500, "fail")
+        error.statusCode = 500
+        error.status = "server error"
+        next(error)
+    }
+}
+export async function getSimilarProperties(req: express.Request, res: express.Response, next: express.NextFunction) {
+
+    try {
+
+        const { error, value } = GetSchema.validate(req.params, { abortEarly: false });
+
+        if (error) {
+            let statusError = new GlobalError(JSON.stringify(
+                {
+                    error: error.details.map(detail => detail.message),
+                }
+            ), 400, "")
+            statusError.status = "fail"
+            return next(statusError)
+
+        }
+
+
+        const { id } = value
+
+
+        const referenceProperty = await prisma.property.findUnique({
+            where:{
+                id
+            }
+        })
+
+        if(!referenceProperty) throw new Error("Property does not exist")
+
+
+        const { limit, page } = req.query
+
+        // number of items to display per page
+        const number_of_items = 2
+
+        const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+
+
+        const similarProperties = await prisma.property.findMany({
+            where: {
+                AND: [
+                    { county: referenceProperty.county },
+                    { city: referenceProperty.city },
+                    { id: { not: referenceProperty.id } },
+                    {
+                        price: {
+                            gte: referenceProperty.price * 0.9, // 10% below reference price
+                            lte: referenceProperty.price * 1.1, // 10% above reference price
+                        },
+                    },
+                    // {
+                    //     size: {
+                    //         gte: parseFloat(referenceProperty.size) * 0.85,
+                    //         lte: parseFloat(referenceProperty.size) * 1.15,
+                    //     },
+                    // },
+                    { saleType: referenceProperty.saleType },
+                    { propertyTypeId: referenceProperty.propertyTypeId },
+                ],
+            },
+            take:5
+        });
+
+       
+
+
+        return res.status(200).json({
+            status: "success",
+            data: {
+                similarProperties,   
             }
         }).end()
 
@@ -519,7 +601,7 @@ export async function getAllProperties(req: express.Request, res: express.Respon
 
         return res.status(200).json({
             status: "success",
-            data:properties,
+            data: properties,
 
 
         }).end()
