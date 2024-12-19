@@ -514,13 +514,7 @@ export async function getSimilarProperties(req: express.Request, res: express.Re
         if(!referenceProperty) throw new Error("Property does not exist")
 
 
-        const { limit, page } = req.query
-
-        // number of items to display per page
-        const number_of_items = 2
-
-        const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-
+        
 
 
         const similarProperties = await prisma.property.findMany({
@@ -545,6 +539,25 @@ export async function getSimilarProperties(req: express.Request, res: express.Re
                     { propertyTypeId: referenceProperty.propertyTypeId },
                 ],
             },
+             select: {
+                    id: true,
+                    name: true,
+                    area: true,
+                    city: true,
+                    price: true,
+                    pricePerMonth: true,
+                    bedrooms: true,
+                    size: true,
+                    images: true,
+                    country: true,
+                    state: true,
+                    saleType: true,
+                    featured: true,
+                    propertyType: true,
+                    county: true,
+                    distance: true
+                },
+               
             take:5
         });
 
@@ -553,9 +566,7 @@ export async function getSimilarProperties(req: express.Request, res: express.Re
 
         return res.status(200).json({
             status: "success",
-            data: {
-                similarProperties,   
-            }
+            data: similarProperties
         }).end()
 
     } catch (e: any) {

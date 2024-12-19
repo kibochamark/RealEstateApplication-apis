@@ -48,7 +48,8 @@ export default passport.use(
                     email: true,
                     username:true,
                     password:true,
-                    companyId:true
+                    companyId:true,
+                    id:true,
                 }
             })
 
