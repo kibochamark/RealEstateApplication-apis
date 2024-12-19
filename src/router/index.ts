@@ -7,6 +7,7 @@ import { patchFeature, postFeature, removefeature, removefeatures, retrievefeatu
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypes } from '../controllers/propertytypes';
 import passport from 'passport';
 import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
+import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs } from 'controllers/blog';
 
 
 
@@ -129,6 +130,13 @@ routes.delete("/:id/feature", removefeature)
 routes.patch("/feature", patchFeature)
 routes.post("/feature", postFeature)
 routes.post("/features", removefeatures)
+
+// blogs
+routes.get("/blogs", retrieveblogs)
+routes.get("/:id/blog", retrieveBlog)
+routes.delete("/:id/blog", removeblog)
+routes.patch("/blog", upload.single('image'), patchBlog)
+routes.post("/blog", upload.single('image'), postBlog)
 
 
 routes.get("/propertytypes", retrievePropertyTypes)

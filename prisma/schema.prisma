@@ -126,8 +126,10 @@ model PropertyImage {
 model Blog {
   id          Int      @id @default(autoincrement())
   name        String   @unique
+  shortDescription String
   imageUrl    String
-  description Json?
+  public_id String
+  description String
   userId      Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
