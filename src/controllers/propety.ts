@@ -420,70 +420,144 @@ export async function updatePropertyImage(req: express.Request, res: express.Res
 
 
 export async function getProperties(req: express.Request, res: express.Response, next: express.NextFunction) {
-
     try {
+        const { limit, page, filters } = req.query;
 
 
+        console.log(filters)
 
-        const { limit, page } = req.query
+        // Parse the filters parameter
+        const parsedFilters = filters ? JSON.parse(filters as string) : {};
 
-        // number of items to display per page
-        const number_of_items = 2
+        const { saleType, location, propertyTypeId, bedrooms, budget } = parsedFilters;
 
-        const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+        // Number of items to display per page
+        const number_of_items = parseInt(limit as string) || 2;
+        let offset = parseInt(page as string)
+        if (parseInt(page as string) > 0) {
+            offset = (parseInt(page as string) - 1) * number_of_items;
+        }
 
+        // Build the where clause dynamically
+        const whereClause: any = {};
 
-
-
-        const properties = await prisma.property.findMany(
-            {
-                select: {
-                    id: true,
-                    name: true,
-                    area: true,
-                    city: true,
-                    price: true,
-                    pricePerMonth: true,
-                    bedrooms: true,
-                    size: true,
-                    images: true,
-                    country: true,
-                    state: true,
-                    saleType: true,
-                    featured: true,
-                    propertyType: true,
-                    county: true,
-                    distance: true
-                },
-                take: parseInt(limit as string) ?? 200,
-                skip: offset
+        if (saleType) {
+            whereClause.saleType = {
+                equals: saleType,
+            };
+        }
+        if (location) {
+            whereClause.AND = [
+                location.county
+                    ? {
+                        county: {
+                            equals: location.county,
+                            mode: 'insensitive', // Case-insensitive match
+                        },
+                    }
+                    : null,
+                location.city
+                    ? {
+                        city: {
+                            equals: location.city,
+                            mode: 'insensitive', // Case-insensitive match
+                        },
+                    }
+                    : null,
+                location.area
+                    ? {
+                        area: {
+                            equals: location.area,
+                            mode: 'insensitive', // Case-insensitive match
+                        },
+                    }
+                    : null,
+                location.state
+                    ? {
+                        state: {
+                            equals: location.state,
+                            mode: 'insensitive', // Case-insensitive match
+                        },
+                    }
+                    : null,
+                location.country
+                    ? {
+                        country: {
+                            equals: location.country,
+                            mode: 'insensitive', // Case-insensitive match
+                        },
+                    }
+                    : null,
+            ].filter(Boolean); // Remove null entries
+        }
+        if (propertyTypeId) {
+            whereClause.propertyTypeId = parseInt(propertyTypeId as string);
+        }
+        if (bedrooms) {
+            whereClause.bedrooms = parseInt(bedrooms as string);
+        }
+        if (budget) {
+            const [minBudget, maxBudget] = (budget as string).split('-').map((val) => parseFloat(val));
+            if (maxBudget) {
+                whereClause.price = { gte: minBudget, lte: maxBudget };
+            } else {
+                whereClause.price = minBudget;
             }
-        )
+        }
 
-        const propertycount = await prisma.property.aggregate({
+        // Fetch properties based on filters
+        const properties = await prisma.property.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                name: true,
+                area: true,
+                city: true,
+                price: true,
+                pricePerMonth: true,
+                bedrooms: true,
+                size: true,
+                images: true,
+                country: true,
+                state: true,
+                saleType: true,
+                featured: true,
+                propertyType: true,
+                county: true,
+                distance: true,
+            },
+            take: number_of_items,
+            skip: offset,
+        });
+
+        // Count total properties matching filters
+        const propertyCount = await prisma.property.aggregate({
+            where: whereClause,
             _count: {
-                id: true
-            }
-        })
+                id: true,
+            },
+        });
 
-        const pagecount = Math.ceil(Number(propertycount._count.id / number_of_items))
+        const pageCount = Math.ceil(Number(propertyCount._count.id) / number_of_items);
 
         return res.status(200).json({
             status: "success",
             data: {
                 properties,
-                totalpages: pagecount
-            }
-        }).end()
+                totalPages: pageCount,
+            },
+        }).end();
 
     } catch (e: any) {
-
-        let error = new GlobalError(`${e.message}`, 500, "fail")
-        error.statusCode = 500
-        error.status = "server error"
-        next(error)
+        const error = new GlobalError(`${e.message}`, 500, "fail");
+        error.statusCode = 500;
+        error.status = "server error";
+        next(error);
     }
 }
+
+
+
 export async function getSimilarProperties(req: express.Request, res: express.Response, next: express.NextFunction) {
 
     try {
@@ -506,15 +580,15 @@ export async function getSimilarProperties(req: express.Request, res: express.Re
 
 
         const referenceProperty = await prisma.property.findUnique({
-            where:{
+            where: {
                 id
             }
         })
 
-        if(!referenceProperty) throw new Error("Property does not exist")
+        if (!referenceProperty) throw new Error("Property does not exist")
 
 
-        
+
 
 
         const similarProperties = await prisma.property.findMany({
@@ -539,29 +613,29 @@ export async function getSimilarProperties(req: express.Request, res: express.Re
                     { propertyTypeId: referenceProperty.propertyTypeId },
                 ],
             },
-             select: {
-                    id: true,
-                    name: true,
-                    area: true,
-                    city: true,
-                    price: true,
-                    pricePerMonth: true,
-                    bedrooms: true,
-                    size: true,
-                    images: true,
-                    country: true,
-                    state: true,
-                    saleType: true,
-                    featured: true,
-                    propertyType: true,
-                    county: true,
-                    distance: true
-                },
-               
-            take:5
+            select: {
+                id: true,
+                name: true,
+                area: true,
+                city: true,
+                price: true,
+                pricePerMonth: true,
+                bedrooms: true,
+                size: true,
+                images: true,
+                country: true,
+                state: true,
+                saleType: true,
+                featured: true,
+                propertyType: true,
+                county: true,
+                distance: true
+            },
+
+            take: 5
         });
 
-       
+
 
 
         return res.status(200).json({
