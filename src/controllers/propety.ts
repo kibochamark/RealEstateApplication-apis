@@ -424,7 +424,7 @@ export async function getProperties(req: express.Request, res: express.Response,
         const { limit, page, filters } = req.query;
 
 
-        console.log(filters)
+        // console.log(filters)
 
         // Parse the filters parameter
         const parsedFilters = filters ? JSON.parse(filters as string) : {};
