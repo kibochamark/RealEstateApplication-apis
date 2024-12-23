@@ -8,6 +8,7 @@ import { patchpropertytypes, postPropertyType, removepropertytypes, retrieveProp
 import passport from 'passport';
 import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
 import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs, retrieveRecentblogs } from '../controllers/blog';
+import { patchAccessSchema, postAccessSchema, removeAccessUser, retrieveAccessUser, retrieveAccessUsers } from '../controllers/access';
 
 
 
@@ -131,6 +132,15 @@ routes.delete("/:id/feature", removefeature)
 routes.patch("/feature", patchFeature)
 routes.post("/feature", postFeature)
 routes.post("/features", removefeatures)
+
+
+// request access
+routes.get("/requestusersaccess", retrieveAccessUsers)
+routes.get("/:id/requestuser", retrieveAccessUser)
+routes.delete("/:id/requestuser", removeAccessUser)
+routes.patch("/requestuseraccess", patchAccessSchema)
+routes.post("/requestuser", postAccessSchema)
+
 
 // blogs
 routes.get("/blogs", retrieveblogs)

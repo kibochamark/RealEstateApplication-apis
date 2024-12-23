@@ -79,7 +79,7 @@ model Property {
   price          Float            @default(0.0)
   pricePerMonth  Float            @default(0.0)
   bedrooms       Float?
-  bathrooms       Int?
+  bathrooms      Int?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -122,18 +122,16 @@ model PropertyImage {
   property Property @relation(fields: [propertyId], references: [id])
 }
 
-
-
 model Blog {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
   shortDescription String
-  imageUrl    String
-  public_id String
-  description String
-  userId      Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  imageUrl         String
+  public_id        String
+  description      String
+  userId           Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   user IntimeUser @relation(fields: [userId], references: [id])
 }
@@ -149,4 +147,21 @@ model Testimonial {
   updatedAt   DateTime @updatedAt
 
   user IntimeUser @relation(fields: [userId], references: [id])
+}
+
+model RequestAccess {
+  id    Int    @id @default(autoincrement())
+  email String @default("doe@intime.com")
+  status RequestAccessStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+enum RequestAccessStatus {
+  APPROVED
+  PENDING
+  REJECTED
 }
