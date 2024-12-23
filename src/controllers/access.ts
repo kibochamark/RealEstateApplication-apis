@@ -9,7 +9,7 @@ export const accesschema = Joi.object({
 })
 export const updateaccessschema = Joi.object({
     id: Joi.number().required(),
-    status:Joi.string().allow(["PENDING", "APPROVED", "REJECTED"])
+    status: Joi.string().valid("PENDING", "APPROVED", "REJECTED") // Use .valid instead of .allow
 })
 
 
