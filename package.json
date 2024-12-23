@@ -2,10 +2,10 @@
   "name": "drizzle-orm-example",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+
   "scripts": {
-    "build": "tsc",
-    "start": "nodemon src/index.ts"
+    "start": "nodemon",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.3",

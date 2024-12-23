@@ -84,3 +84,11 @@ app.listen(8000, () => {
 
 
 export default app
+
+
+
+// "main": "app.js",
+// "scripts": {
+//   "build": "tsc",
+//   "start": "nodemon src/index.ts"
+// },
