@@ -121,7 +121,11 @@ export async function patchpropertytypes(req: express.Request, res: express.Resp
 export async function retrievePropertyTypes(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const propetytype = await prisma.propertyType.findMany()
+        const propetytype = await prisma.propertyType.findMany({
+            orderBy:{
+                createdAt:"desc"
+            }
+        })
 
 
 

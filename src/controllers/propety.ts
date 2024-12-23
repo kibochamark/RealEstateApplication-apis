@@ -528,6 +528,9 @@ export async function getProperties(req: express.Request, res: express.Response,
             },
             take: number_of_items,
             skip: offset,
+            orderBy:{
+                createdAt:"desc"
+            }
         });
 
         // Count total properties matching filters
@@ -632,7 +635,10 @@ export async function getSimilarProperties(req: express.Request, res: express.Re
                 distance: true
             },
 
-            take: 5
+            take: 5,
+            orderBy:{
+                createdAt:"desc"
+            }
         });
 
 
@@ -679,6 +685,9 @@ export async function getAllProperties(req: express.Request, res: express.Respon
                     county: true,
                     distance: true
                 },
+                orderBy:{
+                    createdAt:"desc"
+                }
 
             }
         )

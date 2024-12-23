@@ -127,7 +127,11 @@ export async function patchFeature(req: express.Request, res: express.Response, 
 export async function retrievefeatures(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const features = await prisma.propertyFeature.findMany()
+        const features = await prisma.propertyFeature.findMany({
+            orderBy:{
+                createdAt:"desc"
+            }
+        })
 
 
 

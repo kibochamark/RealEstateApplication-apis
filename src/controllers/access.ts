@@ -119,7 +119,11 @@ export async function patchAccessSchema(req: express.Request, res: express.Respo
 export async function retrieveAccessUsers(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const accessusers = await prisma.requestAccess.findMany()
+        const accessusers = await prisma.requestAccess.findMany({
+            orderBy:{
+                createdAt:"desc"
+            }
+        })
 
 
 

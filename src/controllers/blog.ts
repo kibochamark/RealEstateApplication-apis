@@ -219,7 +219,10 @@ export async function retrieveRecentblogs(
             }
         },
       },
-      take:parseInt(take as string)
+      take:parseInt(take as string),
+      orderBy:{
+        createdAt:"desc"
+    }
     });
 
     return res.status(200).json({

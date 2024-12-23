@@ -193,7 +193,11 @@ export async function patchCompany(req: express.Request, res: express.Response, 
 export async function retrievecompanies(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
 
-        const companies = await prisma.company.findMany()
+        const companies = await prisma.company.findMany({
+            orderBy:{
+                createdAt:"desc"
+            }
+        })
 
 
         return res.status(200).json({
