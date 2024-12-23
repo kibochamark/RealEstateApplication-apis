@@ -4,10 +4,10 @@ import { upload } from '../utils/upload';
 import { deletePropertyById, getAllProperties, getProperties, getPropertyById, getSimilarProperties, postProperty, putProperty } from '../controllers/propety';
 import { patchCompany, postCompany, removecompany, retrievecompanies, retrievecompany } from '../controllers/company';
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
-import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypes } from '../controllers/propertytypes';
+import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypeByName, retrievePropertyTypes } from '../controllers/propertytypes';
 import passport from 'passport';
 import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
-import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs } from '../controllers/blog';
+import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs, retrieveRecentblogs } from '../controllers/blog';
 
 
 
@@ -134,6 +134,7 @@ routes.post("/features", removefeatures)
 
 // blogs
 routes.get("/blogs", retrieveblogs)
+routes.get("/recentblogs", retrieveRecentblogs)
 routes.get("/:id/blog", retrieveBlog)
 routes.delete("/:id/blog", removeblog)
 routes.patch("/blog", upload.single('image'), patchBlog)
@@ -142,6 +143,7 @@ routes.post("/blog", upload.single('image'), postBlog)
 
 routes.get("/propertytypes", retrievePropertyTypes)
 routes.get("/:id/propertytype", retrievePropertyType)
+routes.get("/:name/propertytypebyname", retrievePropertyTypeByName)
 routes.delete("/:id/propertytype", removepropertytypes)
 routes.patch("/propertytype", patchpropertytypes)
 routes.post("/propertytype", postPropertyType)

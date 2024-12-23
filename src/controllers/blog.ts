@@ -201,6 +201,36 @@ export async function retrieveblogs(
     return next(error);
   }
 }
+export async function retrieveRecentblogs(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  try {
+    const {take} = req.query
+    if(!take) throw new Error("Please pass a limit")
+    const blogs = await prisma.blog.findMany({
+
+      include: {
+        user: {
+            select:{
+                firstname:true,
+                lastname:true
+            }
+        },
+      },
+      take:parseInt(take as string)
+    });
+
+    return res.status(200).json({
+      status: "message",
+      data: blogs,
+    });
+  } catch (e: any) {
+    let error = new GlobalError(`${e.message}`, 500, "fail");
+    return next(error);
+  }
+}
 
 export async function retrieveBlog(
   req: express.Request,

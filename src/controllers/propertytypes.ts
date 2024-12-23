@@ -16,6 +16,9 @@ export const updatepropertytypeschema = Joi.object({
 export const getSchema = Joi.object({
     id: Joi.number().required()
 })
+export const getTypeSchema = Joi.object({
+    name: Joi.string().required()
+})
 
 
 
@@ -156,6 +159,46 @@ export async function retrievePropertyType(req: express.Request, res: express.Re
         const propertytype = await prisma.propertyType.findUniqueOrThrow({
             where:{
                 id
+            }
+        })
+
+
+
+        return res.status(200).json({
+            status: "message",
+            data: propertytype
+        })
+
+
+    } catch (e: any) {
+        let error = new GlobalError(`${e.message}`, 500, "fail")
+        return next(error)
+    }
+}
+
+export async function retrievePropertyTypeByName(req: express.Request, res: express.Response, next: express.NextFunction) {
+    try {
+
+        const { error, value } = getTypeSchema.validate(req.params, { abortEarly: false });
+
+        if (error) {
+            let statusError = new GlobalError(JSON.stringify(
+                {
+                    error: error.details.map(detail => detail.message),
+                }
+            ), 400, "")
+            statusError.status = "fail"
+            return next(statusError)
+
+        }
+
+        let { name } = value
+
+        console.log(name)
+
+        const propertytype = await prisma.propertyType.findFirst({
+            where:{
+                name
             }
         })
 
