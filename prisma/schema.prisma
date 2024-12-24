@@ -151,7 +151,7 @@ model Testimonial {
 
 model RequestAccess {
   id    Int    @id @default(autoincrement())
-  email String @default("doe@intime.com")
+  email String @unique @default("doe@intime.com")
   status RequestAccessStatus @default(PENDING)
 
   createdAt DateTime @default(now())
