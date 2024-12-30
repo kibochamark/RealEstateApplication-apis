@@ -2,6 +2,7 @@ import Joi from "joi";
 import express from "express"
 import { GlobalError } from "../../types/errorTypes";
 import { prisma } from "../utils/prismaconnection";
+import { cloudinary } from "./cloudinary";
 
 
 // Validation schema
@@ -11,6 +12,7 @@ const testimonialSchema = Joi.object({
   description: Joi.string().optional(),
   userId: Joi.number().required(),
   onBehalfOf: Joi.string().required(),
+  
   rating: Joi.number().min(1).max(5).required(),
 });
 
@@ -34,15 +36,11 @@ export async function postTestimonial(
   next: express.NextFunction
 ) {
   try {
-    const { error, value } = testimonialSchema.validate(
-      req.body,
-      { abortEarly: false }
-    );
+    // Validate the incoming request body
+    const { error, value } = testimonialSchema.validate(req.body, { abortEarly: false });
     if (error) {
       let statusError = new GlobalError(
-        JSON.stringify({
-          error: error.details.map((detail) => detail.message),
-        }),
+        JSON.stringify({ error: error.details.map((detail) => detail.message) }),
         400,
         ""
       );
@@ -50,13 +48,42 @@ export async function postTestimonial(
       return next(statusError);
     }
 
-    const { name, imageUrl, description, userId, onBehalfOf, rating } = value;
+    let { name, description, userId, onBehalfOf, rating } = value;
 
+    // Fetch the user from the database
+    const user = await prisma.intimeUser.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new Error("User does not exist");
+    }
+
+    // Initialize imageUrl and public_id variables
+    let imageurldata = {
+      url: "",
+      public_id: "",
+    };
+
+    // Process image if it exists
+    if (req.file) {
+      const file = req.file as Express.Multer.File;
+
+      // Upload the image to Cloudinary (you can replace with your image upload service)
+      const result = await cloudinary.uploader.upload(file.path);
+      imageurldata.url = result.secure_url;
+      imageurldata.public_id = result.public_id;
+    }
+
+    // Create the testimonial in the database
     const testimonial = await prisma.testimonial.create({
       data: {
         name,
-        imageUrl,
-        description, 
+        imageUrl: imageurldata.url,
+        public_id: imageurldata.public_id,
+        description,
         userId,
         onBehalfOf,
         rating,
