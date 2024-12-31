@@ -36,6 +36,8 @@ export async function postTestimonial(
   next: express.NextFunction
 ) {
   try {
+    console.log(req.body);
+    
     // Validate the incoming request body
     const { error, value } = testimonialSchema.validate(req.body, { abortEarly: false });
     if (error) {
@@ -45,21 +47,21 @@ export async function postTestimonial(
         ""
       );
       statusError.status = "failed";
-      return next(statusError);
+      next(statusError);
     }
 
     let { name, description, userId, onBehalfOf, rating } = value;
 
-    // Fetch the user from the database
-    const user = await prisma.intimeUser.findUnique({
-      where: {
-        id: userId,
-      },
-    });
+    // // Fetch the user from the database
+    // const user = await prisma.intimeUser.findUnique({
+    //   where: {
+    //     id: userId,
+    //   },
+    // });
 
-    if (!user) {
-      throw new Error("User does not exist");
-    }
+    // if (!user) {
+    //   next(new GlobalError("User does not exist", 400, "fail"))
+    // }
 
     // Initialize imageUrl and public_id variables
     let imageurldata = {
@@ -92,11 +94,11 @@ export async function postTestimonial(
 
     return res.status(201).json({
       status: "success",
-      data: testimonial,
-    });
+      data: value,
+    }).end();
   } catch (e: any) {
     let error = new GlobalError(`${e.message}`, 500, "fail");
-    return next(error);
+    next(error);
   }
 }
 // Get testimonials
