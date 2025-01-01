@@ -140,9 +140,11 @@ model Testimonial {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   imageUrl    String?
+  public_id   String
   description Json?
   userId      Int
   onBehalfOf  String
+  rating       Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -9,6 +9,7 @@ import passport from 'passport';
 import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
 import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs, retrieveRecentblogs } from '../controllers/blog';
 import { patchAccessSchema, postAccessSchema, removeAccessUser, retrieveAccessUser, retrieveAccessUsers } from '../controllers/access';
+import { deleteTestimonial, getAllTestimonials, getSingleTestimonial, postTestimonial, updateTestimonial } from '../controllers/testimonial';
 
 
 
@@ -110,7 +111,8 @@ routes.delete("/:id/property", deletePropertyById)
 routes.patch("/property", putProperty)
 routes.patch("/propertyimage", upload.array('images', 10), putProperty)
 
-
+//all users
+routes.get("/users")
 
 routes.get("/:id/user", retrieveuser)
 routes.get("/:id/companyusers", retrieveusersbycompanyid)
@@ -150,6 +152,14 @@ routes.delete("/:id/blog", removeblog)
 routes.patch("/blog", upload.single('image'), patchBlog)
 routes.post("/blog", upload.single('image'), postBlog)
 
+
+//testimonials
+
+routes.post("/testimonial", upload.single('image'), postTestimonial)
+routes.get("/gettestimonials", getAllTestimonials)
+routes.get("/:id/gettestimonials", getSingleTestimonial)
+routes.patch("/testimonial", updateTestimonial)
+routes.delete("/:id/testimonial", deleteTestimonial)
 
 routes.get("/propertytypes", retrievePropertyTypes)
 routes.get("/:id/propertytype", retrievePropertyType)
