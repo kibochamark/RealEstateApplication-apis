@@ -97,6 +97,8 @@ export async function patchBlog(
     const { error, value } = updateblogschema.validate(JSON.parse(req.body.json), {
       abortEarly: false,
     });
+    console.log(req.body);
+    
 
     if (error) {
       let statusError = new GlobalError(

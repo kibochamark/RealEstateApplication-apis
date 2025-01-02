@@ -2,7 +2,7 @@ import Joi from "joi";
 import express from "express"
 import { GlobalError } from "../../types/errorTypes";
 import { prisma } from "../utils/prismaconnection";
-import { cloudinary } from "./cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
 
 // Validation schema
@@ -17,6 +17,7 @@ const testimonialSchema = Joi.object({
 });
 
 const updateTestimonialSchema = Joi.object({
+  id: Joi.number().required(),
   name: Joi.string(),
   imageUrl: Joi.string().uri().optional(),
   description: Joi.string().optional(),
@@ -36,10 +37,9 @@ export async function postTestimonial(
   next: express.NextFunction
 ) {
   try {
-    console.log(req.body);
     
     // Validate the incoming request body
-    const { error, value } = testimonialSchema.validate(req.body, { abortEarly: false });
+    const { error, value } = testimonialSchema.validate(JSON.parse(req.body.json), { abortEarly: false });
     if (error) {
       let statusError = new GlobalError(
         JSON.stringify({ error: error.details.map((detail) => detail.message) }),
@@ -51,6 +51,17 @@ export async function postTestimonial(
     }
 
     let { name, description, userId, onBehalfOf, rating } = value;
+    //check if testimonial exists
+      // Check if a testimonial with the same name already exists
+    const existingTestimonial = await prisma.testimonial.findFirst({
+      where: { name },
+    });
+
+    if (existingTestimonial) {
+      return next(
+        new GlobalError("A testimonial with this name already exists", 400, "fail")
+      );
+    }
 
     // // Fetch the user from the database
     // const user = await prisma.intimeUser.findUnique({
@@ -73,7 +84,6 @@ export async function postTestimonial(
     if (req.file) {
       const file = req.file as Express.Multer.File;
 
-      // Upload the image to Cloudinary (you can replace with your image upload service)
       const result = await cloudinary.uploader.upload(file.path);
       imageurldata.url = result.secure_url;
       imageurldata.public_id = result.public_id;
@@ -165,49 +175,85 @@ export async function getSingleTestimonial(
 }
 
 
+  //update
+  export async function updateTestimonial(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) {
+    try {
+      
+      // Validate the incoming request body
+      const { error, value } = updateTestimonialSchema.validate(JSON.parse(req.body.json), { abortEarly: false });
+      if (error) {
+        let statusError = new GlobalError(
+          JSON.stringify({ error: error.details.map((detail) => detail.message) }),
+          400,
+          ""
+        );
+        statusError.status = "failed";
+        return next(statusError);
+      }
   
-// Update a testimonial
-export async function updateTestimonial(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  try {
-    const { id } = req.params;
-    const { error, value } = updateTestimonialSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      let statusError = new GlobalError(
-        JSON.stringify({
-          error: error.details.map((detail) => detail.message),
-        }),
-        400,
-        ""
-      );
-      statusError.status = "failed";
-      return next(statusError);
+      let { id, name, description, userId, onBehalfOf, rating } = value;
+  
+      // Check if id is provided and is valid
+      if (!id) {
+        return next(
+          new GlobalError("Testimonial id is required", 400, "fail")
+        );
+      }
+  
+      // Check if testimonial exists with the given ID
+      const existingTestimonial = await prisma.testimonial.findUnique({
+        where: { id },
+      });
+  
+      if (!existingTestimonial) {
+        return next(
+          new GlobalError("Testimonial not found", 404, "fail")
+        );
+      }
+  
+      // Initialize imageUrl and public_id variables
+      let imageurldata = {
+        url: existingTestimonial.imageUrl,  // Preserve existing image if no new image is uploaded
+        public_id: existingTestimonial.public_id,  // Preserve existing public_id if no new image is uploaded
+      };
+  
+      // Process new image if it exists
+      if (req.file) {
+        const file = req.file as Express.Multer.File;
+        const result = await cloudinary.uploader.upload(file.path);
+        imageurldata.url = result.secure_url;
+        imageurldata.public_id = result.public_id;
+      }
+  
+      // Update the testimonial in the database
+      const updatedTestimonial = await prisma.testimonial.update({
+        where: { id },
+        data: {
+          name,
+          imageUrl: imageurldata.url,
+          public_id: imageurldata.public_id,
+          description,
+          userId,
+          onBehalfOf,
+          rating,
+        },
+      });
+  
+      return res.status(200).json({
+        status: "success",
+        data: updatedTestimonial,
+      }).end();
+    } catch (e: any) {
+      let error = new GlobalError(`${e.message}`, 500, "fail");
+      next(error);
     }
-
-    const updatedData = {
-      ...value,
-      description: value.description ? JSON.parse(value.description) : undefined,
-    };
-
-    const testimonial = await prisma.testimonial.update({
-      where: { id: parseInt(id) },
-      data: updatedData,
-    });
-
-    return res.status(200).json({
-      status: "success",
-      data: testimonial,
-    });
-  } catch (e: any) {
-    let error = new GlobalError(`${e.message}`, 500, "fail");
-    return next(error);
   }
-}
+  
+
 //delete
 export async function deleteTestimonial(
     req: express.Request,
@@ -236,7 +282,7 @@ export async function deleteTestimonial(
         where: { id: parseInt(id, 10) },
       });
   
-      res.status(200).json({
+      res.status(204).json({
         status: "success",
         message: `Testimonial with ID ${id} has been deleted successfully.`,
       });
