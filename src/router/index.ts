@@ -158,7 +158,7 @@ routes.post("/blog", upload.single('image'), postBlog)
 routes.post("/testimonial", upload.single('image'), postTestimonial)
 routes.get("/gettestimonials", getAllTestimonials)
 routes.get("/:id/gettestimonials", getSingleTestimonial)
-routes.patch("/testimonial", updateTestimonial)
+routes.patch("/testimonial", upload.single('image'), updateTestimonial)
 routes.delete("/:id/testimonial", deleteTestimonial)
 
 routes.get("/propertytypes", retrievePropertyTypes)
