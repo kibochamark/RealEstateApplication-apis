@@ -229,7 +229,7 @@ export async function putProperty(req: express.Request, res: express.Response, n
 
 
 
-        const { error, value } = updatepropertySchema.validate(req.body, { abortEarly: false });
+        const { error, value } = updatepropertySchema.validate(JSON.parse(req.body.json), { abortEarly: false });
 
         if (error) {
             let statusError = new GlobalError(JSON.stringify(

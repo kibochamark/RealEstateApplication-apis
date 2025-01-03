@@ -16,6 +16,7 @@ export const updateblogschema = Joi.object({
   id: Joi.number().required(),
   name: Joi.string().required(),
   description: Joi.string().required(),
+  shortDescription: Joi.string().required(),
   userId: Joi.number().required(),
 });
 
@@ -32,6 +33,7 @@ export async function postBlog(
     const { error, value } = blogschema.validate(JSON.parse(req.body.json), {
       abortEarly: false,
     });
+    
 
     if (error) {
       let statusError = new GlobalError(
@@ -155,6 +157,7 @@ export async function patchBlog(
       data: {
         name,
         description,
+        shortDescription,
         userId,
         imageUrl:
           imageurldata.url.length > 0
