@@ -140,7 +140,11 @@ export async function getAllTestimonials(
     // Fetch all testimonials
     const testimonials = await prisma.testimonial.findMany({
       include: {
-        user: true,
+        user: {
+          select:{
+            username:true
+          }
+        },
       },
     });
 
