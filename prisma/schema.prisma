@@ -141,13 +141,13 @@ model Testimonial {
   name        String   @unique
   imageUrl    String?
   public_id   String
-  description Json?
+  quote        Json
+  designation  String
   userId      Int
-  onBehalfOf  String
-  rating       Int
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+   
   user IntimeUser @relation(fields: [userId], references: [id])
 }
 
