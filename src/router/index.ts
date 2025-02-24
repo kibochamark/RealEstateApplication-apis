@@ -1,7 +1,7 @@
 import express from 'express';
 import { validateEmail } from '../middleware/emailValidator';
 import { upload } from '../utils/upload';
-import { deletePropertyById, getAllProperties, getProperties, getPropertyById, getSimilarProperties, orderImages, postProperty, putProperty } from '../controllers/propety';
+import { deletePropertyById, getAllProperties, getProperties, getPropertyById, getSimilarProperties, postProperty, putProperty } from '../controllers/propety';
 import { patchCompany, postCompany, removecompany, retrievecompanies, retrievecompany } from '../controllers/company';
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypeByName, retrievePropertyTypes } from '../controllers/propertytypes';
@@ -9,6 +9,7 @@ import passport from 'passport';
 import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbycompanyid } from '../controllers/auth';
 import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs, retrieveRecentblogs } from '../controllers/blog';
 import { patchAccessSchema, postAccessSchema, removeAccessUser, retrieveAccessUser, retrieveAccessUsers } from '../controllers/access';
+import { deleteTestimonial, getAllTestimonials, getSingleTestimonial, postTestimonial, updateTestimonial } from '../controllers/testimonial';
 
 
 
@@ -109,9 +110,9 @@ routes.get("/:id/property", getPropertyById)
 routes.delete("/:id/property", deletePropertyById)
 routes.patch("/property", putProperty)
 routes.patch("/propertyimage", upload.array('images', 10), putProperty)
-routes.post("/:id/orderImages", upload.array('images', 10), orderImages)
 
-
+//all users
+routes.get("/users")
 
 routes.get("/:id/user", retrieveuser)
 routes.get("/:id/companyusers", retrieveusersbycompanyid)
@@ -151,6 +152,14 @@ routes.delete("/:id/blog", removeblog)
 routes.patch("/blog", upload.single('image'), patchBlog)
 routes.post("/blog", upload.single('image'), postBlog)
 
+
+//testimonials
+
+routes.post("/testimonial", upload.single('image'), postTestimonial)
+routes.get("/gettestimonials", getAllTestimonials)
+routes.get("/:id/gettestimonials", getSingleTestimonial)
+routes.patch("/testimonial", upload.single('image'), updateTestimonial)
+routes.delete("/:id/testimonial", deleteTestimonial)
 
 routes.get("/propertytypes", retrievePropertyTypes)
 routes.get("/:id/propertytype", retrievePropertyType)

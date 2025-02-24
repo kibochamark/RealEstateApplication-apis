@@ -120,12 +120,12 @@ export async function postProperty(req: express.Request, res: express.Response, 
         } = value;
         // convert features to an array
 
-        console.log(features)
-        console.log(features.split(","))
+        // console.log(features)
+        // console.log(features.split(","))
 
         features = features.split(",").map((feat: string) => parseInt(feat))
 
-        console.log(features)
+        // console.log(features)
 
 
 
@@ -225,8 +225,7 @@ export async function putProperty(req: express.Request, res: express.Response, n
 
     try {
 
-        // console.log(req.body)
-
+        console.log(req.body, 'the submitted proprty')
 
 
         const { error, value } = updatepropertySchema.validate(req.body, { abortEarly: false });
@@ -267,6 +266,7 @@ export async function putProperty(req: express.Request, res: express.Response, n
         // convert features to an array
 
         features = features.split(",")
+        features = features.map((feature:string) => parseInt(feature))  
 
 
         // perform data manipulation in the db
@@ -284,7 +284,7 @@ export async function putProperty(req: express.Request, res: express.Response, n
                     city,
                     saleType,
                     featured,
-                    propertyType,
+                    propertyTypeId:propertyType,
                     size,
                     distance,
                     price,
@@ -323,12 +323,14 @@ export async function putProperty(req: express.Request, res: express.Response, n
 export async function updatePropertyImage(req: express.Request, res: express.Response, next: express.NextFunction) {
 
 
+
     try {
+        
 
 
 
 
-        const { error, value } = updatePropertyImageSchema.validate(req.body, { abortEarly: false });
+        const { error, value } = updatePropertyImageSchema.validate(JSON.parse(req.body.json), { abortEarly: false });
 
         if (error) {
             let statusError = new GlobalError(JSON.stringify(
@@ -345,10 +347,11 @@ export async function updatePropertyImage(req: express.Request, res: express.Res
             action,
             publicId,
             propertyId
-        } = value;
-
-
+        } = value        
         if (action == "delete") {
+            console.log( action,
+                publicId,
+                propertyId);
             deleteFile(publicId)
             const propertyimage = await prisma.propertyImage.findFirst({
                 where: {
@@ -396,7 +399,7 @@ export async function updatePropertyImage(req: express.Request, res: express.Res
 
 
 
-        return res.status(201).json({
+        return res.status(200).json({
             status: "success",
         }).end()
 

@@ -143,12 +143,14 @@ model Testimonial {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   imageUrl    String?
-  description Json?
-  userId      Int
-  onBehalfOf  String
+  public_id   String
+  quote        Json
+  designation  String
+  userId      Int 
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+   
   user IntimeUser @relation(fields: [userId], references: [id])
 }
 
