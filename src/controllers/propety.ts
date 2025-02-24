@@ -311,10 +311,6 @@ export async function putProperty(req: express.Request, res: express.Response, n
             data: updateproperty
         }).end()
 
-
-
-
-
     } catch (e: any) {
         let error = new GlobalError(`${e.message}`, 500, "fail")
         return next(error)
@@ -413,11 +409,86 @@ export async function updatePropertyImage(req: express.Request, res: express.Res
         return next(error)
     }
 }
+export async function orderImages(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) {
+    try {
+      const { propertyId, imageOrder } = req.body;
+      console.log("Request body:", imageOrder,propertyId);
 
+      console.log("Request body:", req.body);
 
-
-
-
+  
+      if (!propertyId || !Array.isArray(imageOrder)) {
+        const statusError = new GlobalError(
+          JSON.stringify({ error: ["Invalid input data"] }),
+          400,
+          "fail"
+        );
+        return next(statusError);
+      }
+  
+      // Use a transaction to update each image's order.
+      await prisma.$transaction(async (tx) => {
+        for (let index = 0; index < imageOrder.length; index++) {
+          const publicId = imageOrder[index];
+          try {
+            // Find the image with the given propertyId and publicId.
+            const image = await tx.propertyImage.findFirst({
+              where: { propertyId, publicId },
+              select: { id: true },
+            });
+            if (image) {
+              console.log(`Updating image id ${image.id} with order: ${index + 1}`);
+              await tx.propertyImage.update({
+                where: { id: image.id },
+                data: { order: index + 1 },
+              });
+            } else {
+              console.error(`Image not found for propertyId: ${propertyId}, publicId: ${publicId}`);
+            }
+          } catch (updateError: any) {
+            console.error(
+              `Error updating image for propertyId: ${propertyId}, publicId: ${publicId}. Error: ${updateError.message}`
+            );
+            throw updateError;
+          }
+        }
+      });
+  
+      // Fetch the property record along with its images.
+      const propertyData = await prisma.property.findUnique({
+        where: { id: propertyId },
+        include: { images: true },
+      });
+  
+      if (!propertyData) {
+        const statusError = new GlobalError(
+          JSON.stringify({ error: ["Property not found"] }),
+          404,
+          "fail"
+        );
+        return next(statusError);
+      }
+  
+      // Reassemble images in the same order as provided by the frontend.
+      const imagesMap = new Map(
+        propertyData.images.map((img) => [img.publicId, img])
+      );
+      const orderedImages = imageOrder.map((publicId) => imagesMap.get(publicId));
+  
+      return res
+        .status(200)
+        .json({ status: "success", data: { ...propertyData, images: orderedImages } })
+        .end();
+    } catch (e: any) {
+      console.error("Error in orderImages controller:", e);
+      const error = new GlobalError(`${e.message}`, 500, "fail");
+      return next(error);
+    }
+  }
 
 export async function getProperties(req: express.Request, res: express.Response, next: express.NextFunction) {
     try {

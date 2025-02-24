@@ -116,10 +116,13 @@ model PropertyImage {
   url        String
   publicId   String
   propertyId Int
+  order      Int      @default(0) // Added order field for sorting images
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   property Property @relation(fields: [propertyId], references: [id])
+    @@unique([propertyId, publicId], name: "propertyId_publicId")
+
 }
 
 model Blog {
