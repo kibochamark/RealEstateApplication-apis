@@ -1,7 +1,7 @@
 import express from 'express';
 import { validateEmail } from '../middleware/emailValidator';
 import { upload } from '../utils/upload';
-import { deletePropertyById, getAllProperties, getProperties, getPropertyById, getSimilarProperties, postProperty, putProperty } from '../controllers/propety';
+import { deletePropertyById, getAllProperties, getProperties, getPropertyById, getSimilarProperties, orderImages, postProperty, putProperty } from '../controllers/propety';
 import { patchCompany, postCompany, removecompany, retrievecompanies, retrievecompany } from '../controllers/company';
 import { patchFeature, postFeature, removefeature, removefeatures, retrievefeature, retrievefeatures } from '../controllers/features';
 import { patchpropertytypes, postPropertyType, removepropertytypes, retrievePropertyType, retrievePropertyTypeByName, retrievePropertyTypes } from '../controllers/propertytypes';
@@ -110,6 +110,8 @@ routes.get("/:id/property", getPropertyById)
 routes.delete("/:id/property", deletePropertyById)
 routes.patch("/property", putProperty)
 routes.patch("/propertyimage", upload.array('images', 10), putProperty)
+routes.post("/:id/orderImages", upload.array('images', 10), orderImages)
+
 
 //all users
 routes.get("/users")
