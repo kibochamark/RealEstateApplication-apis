@@ -31,7 +31,7 @@ export async function postConnection(
   next: express.NextFunction
 ) {
   try {
-    const { error, value } = connectionchema.validate(JSON.parse(req.body.json), {
+    const { error, value } = connectionchema.validate(JSON.parse(req.body), {
       abortEarly: false,
     });
     
