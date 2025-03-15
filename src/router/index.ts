@@ -10,6 +10,7 @@ import { login, patchUser, register, removeuser, retrieveuser, retrieveusersbyco
 import { patchBlog, postBlog, removeblog, retrieveBlog, retrieveblogs, retrieveRecentblogs } from '../controllers/blog';
 import { patchAccessSchema, postAccessSchema, removeAccessUser, retrieveAccessUser, retrieveAccessUsers } from '../controllers/access';
 import { deleteTestimonial, getAllTestimonials, getSingleTestimonial, postTestimonial, updateTestimonial } from '../controllers/testimonial';
+import { patchConnection, postConnection, removeConnection, retrieveConnection, retrieveConnections } from '../controllers/connections';
 
 
 
@@ -169,6 +170,15 @@ routes.get("/:name/propertytypebyname", retrievePropertyTypeByName)
 routes.delete("/:id/propertytype", removepropertytypes)
 routes.patch("/propertytype", patchpropertytypes)
 routes.post("/propertytype", postPropertyType)
+
+
+
+// connections
+routes.get("/connections", retrieveConnections)
+routes.get("/:id/connection", retrieveConnection)
+routes.delete("/:id/blog", removeConnection)
+routes.patch("/connection", patchConnection)
+routes.post("/connection", postConnection)
 
 
 export default routes;
