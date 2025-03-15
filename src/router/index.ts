@@ -176,7 +176,7 @@ routes.post("/propertytype", postPropertyType)
 // connections
 routes.get("/connections", retrieveConnections)
 routes.get("/:id/connection", retrieveConnection)
-routes.delete("/:id/blog", removeConnection)
+routes.delete("/:id/connection", removeConnection)
 routes.patch("/connection", patchConnection)
 routes.post("/connection", postConnection)
 
