@@ -77,7 +77,7 @@ export async function patchConnection(
   next: express.NextFunction
 ) {
   try {
-    const { error, value } = updateconnectionchema.validate(JSON.parse(req.body.json), {
+    const { error, value } = updateconnectionchema.validate(JSON.parse(req.body), {
       abortEarly: false,
     });
     console.log(req.body);
